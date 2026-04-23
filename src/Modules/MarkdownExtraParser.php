@@ -232,7 +232,9 @@ class MarkdownExtraParser extends ParsedownExtra {
 				return '<code class="kb-btn">' . $this->hash_block( esc_html( substr( $matches[1], 1, -1 ) ) ) . '</code>';
 			}
 		}
-		return '<code>' . $this->hash_block( esc_html( $matches[1] ) ) . '</code>';
+		// Keep standard inline code as markdown so Parsedown safe mode can render
+		// valid <code> elements instead of escaping injected raw HTML tags.
+		return '`' . $this->hash_block( esc_html( $matches[1] ) ) . '`';
 	}
 
 	/**
