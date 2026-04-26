@@ -952,8 +952,9 @@ class Markdown extends ControllerAbstract {
 		// sometimes we get an encoded > at start of line, breaking blockquotes
 		$text = preg_replace( '/^&gt;/m', '>', $text );
 
-		// If we're not using the code shortcode, prevent over-encoding.
-		if ( $args['decode_code_blocks'] ) {
+		// Decode pre-escaped fenced blocks to prevent double-encoding on save.
+		// This can happen when save-time filters run before Markdown transform.
+		if ( $args['decode_code_blocks'] || $this->has_encoded_fenced_code_blocks( $text ) ) {
 			$text = $this->restore_code_blocks( $text );
 		}
 
@@ -989,6 +990,19 @@ class Markdown extends ControllerAbstract {
 		}
 
 		return $text;
+	}
+
+	/**
+	 * Detect whether fenced code blocks appear to be HTML-encoded already.
+	 *
+	 * @param string $text Content to inspect.
+	 * @return bool
+	 */
+	protected function has_encoded_fenced_code_blocks( $text ) {
+		return (bool) preg_match(
+			"/^(\t*[`~]{3})([^`\n]+)?\n[\s\S]*?(?:&amp;quot;|&quot;|&#0?39;|&lt;|&gt;|&amp;#)[\s\S]*?\n(\\1)/m",
+			$text
+		);
 	}
 
 	/**
